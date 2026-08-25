@@ -1,6 +1,6 @@
 service: deskflow
 
-image: ahmed-alsheiba/deskflow
+image: deskflow
 
 servers:
   web:
@@ -11,9 +11,12 @@ proxy:
   host: deskflow.dev
   forward_headers: true
 
+# Self-hosted registry on the Pi, htpasswd-authed (user `stash`, shared with the Stash
+# project — the htpasswd file lives at /home/deploy/registry.htpasswd). Plain HTTP on the
+# LAN, so both Docker daemons carry the matching insecure-registries entry.
 registry:
-  server: ghcr.io
-  username: ahmed-alsheiba
+  server: 192.168.8.223:5000
+  username: stash
   password:
     - KAMAL_REGISTRY_PASSWORD
 
@@ -42,8 +45,12 @@ asset_path: /rails/public/assets
 ssh:
   user: deploy
 
+# driver: docker → build+push go through the Docker daemon, which honours its
+# insecure-registries. The buildx "docker-container" driver ignores that and cannot push
+# to the Pi registry over plain HTTP.
 builder:
   arch: arm64
+  driver: docker
 
 accessories:
   cloudflared:
